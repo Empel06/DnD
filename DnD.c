@@ -160,25 +160,61 @@ void printInventory(const Inventory *inventory) {
     printf("Camp File: %s\n", inventory->campFile);
 }
 
-int main(int argc, char *argv[]) {
-    Inventory inventory = {0};
+  // Function to interactively manage the inventory
+  void manageInventory(Inventory *inventory) {
+      char choice[10];
+      Equipment *current = inventory->items;
 
-    // Parse CLI arguments
-    parseCLIArguments(argc, argv, &inventory);
+      while (1) {
+          printf("next, previous, use, or exit: ");
+          scanf("%s", choice);
 
-    // Print the inventory
-    printInventory(&inventory);
+          if (strcmp(choice, "next") == 0) {
+              if (current < &inventory->items[inventory->itemCount - 1]) {
+                  current++;
+              } else {
+                  printf("Already at the last item.\n");
+              }
+          } else if (strcmp(choice, "previous") == 0) {
+              if (current > inventory->items) {
+                  current--;
+              } else {
+                  printf("Already at the first item.\n");
+              }
+          } else if (strcmp(choice, "use") == 0) {
+              printf("Using item: %s\n", current->name);
+              // Implement item usage logic here
+          } else if (strcmp(choice, "exit") == 0) {
+              printf("Exiting inventory management.\n");
+              break;
+          } else {
+              printf("Invalid choice. Please try again.\n");
+          }
+      }
+  }
 
-    // Free allocated memory
-    for (int i = 0; i < inventory.itemCount; i++) {
-        free(inventory.items[i].name);
-        free(inventory.items[i].index);
-        free(inventory.items[i].url);
-        free(inventory.items[i].description);
-        free(inventory.items[i].cost);
-    }
-    free(inventory.items);
-    free(inventory.campFile);
+  int main(int argc, char *argv[]) {
+      Inventory inventory = {0};
 
-    return 0;
-}
+      // Parse CLI arguments
+      parseCLIArguments(argc, argv, &inventory);
+
+      // Print the inventory
+      printInventory(&inventory);
+
+      // Manage the inventory interactively
+      manageInventory(&inventory);
+
+      // Free allocated memory
+      for (int i = 0; i < inventory.itemCount; i++) {
+          free(inventory.items[i].name);
+          free(inventory.items[i].index);
+          free(inventory.items[i].url);
+          free(inventory.items[i].description);
+          free(inventory.items[i].cost);
+      }
+      free(inventory.items);
+      free(inventory.campFile);
+
+      return 0;
+  }
