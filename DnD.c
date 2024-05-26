@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Struct for an individual equipment item
+// Structuur voor een individueel uitrustingsstuk
 typedef struct {
     char *name;
     char *index;
@@ -13,7 +13,7 @@ typedef struct {
     char *cost;
 } Equipment;
 
-// Struct for the entire inventory
+// Structuur voor de volledige inventaris
 typedef struct {
     Equipment *items;
     int itemCount;
@@ -27,43 +27,44 @@ typedef struct {
     char *campFile;
 } Inventory;
 
-// Helper function to allocate memory and copy a string
+// Functie om geheugen toe te wijzen en een string te kopiëren
 char *copyString(const char *source) {
     if (source == NULL) return NULL;
 
     size_t length = strlen(source);
     char *destination = malloc(length + 1);
     if (destination == NULL) {
-        fprintf(stderr, "Memory allocation failed.\n");
+        fprintf(stderr, "Geheugenallocatie mislukt.\n");
         exit(1);
     }
     strcpy(destination, source);
     return destination;
 }
 
-// Function to parse equipment from a JSON file
-void parseEquipmentFile(const char *filename, Inventory *inventory) {
-    if (strcmp(filename, "backpack.json") == 0) {
-        // Manually add data for backpack
-        Equipment backpack = {
-            .name = copyString("Backpack"),
-            .index = copyString("backpack"),
-            .weight = 5.0,
-            .url = copyString("/api/equipment/backpack"),
-            .quantity = 1,
-            .description = copyString("Standard backpack."),
-            .cost = copyString("2gp")
-        };
-
-        // Add backpack to inventory
-        inventory->items = realloc(inventory->items, (inventory->itemCount + 1) * sizeof(Equipment));
-        inventory->items[inventory->itemCount] = backpack;
-        inventory->itemCount++;
-        inventory->currentWeight += backpack.weight;
-
+// Functie om acties naar het geschiedenisbestand te schrijven
+void writeHistory(const char *action, const char *itemName) {
+    FILE *file = fopen("history.txt", "a"); // Open het geschiedenisbestand om aan het einde toe te voegen
+    if (file == NULL) {
+        printf("Fout bij het openen van het geschiedenisbestand.\n");
         return;
     }
 
+    // Schrijf de actie en het itemnaam naar het geschiedenisbestand
+    fprintf(file, "Actie: %s\n", action);
+    fprintf(file, "Item: %s\n", itemName);
+    fprintf(file, "\n");
+
+    fclose(file); // Sluit het bestand
+}
+
+// Functie om een uitrustingsstuk te gebruiken
+void useItem(Equipment *item) {
+    printf("Gebruik item: %s\n", item->name);
+    writeHistory("Gebruik", item->name); // Voeg deze regel toe om het gebruik van een item vast te leggen
+}
+
+// Functie om uitrustingsstukken uit een JSON-bestand te parseren
+void parseEquipmentFile(const char *filename, Inventory *inventory) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         fprintf(stderr, "Error: Failed to open file: %s\n", filename);
@@ -102,7 +103,7 @@ void parseEquipmentFile(const char *filename, Inventory *inventory) {
         }
     }
 
-    // Add item to inventory
+    // Voeg item toe aan inventaris
     inventory->items = realloc(inventory->items, (inventory->itemCount + 1) * sizeof(Equipment));
     inventory->items[inventory->itemCount] = item;
     inventory->itemCount++;
@@ -111,7 +112,45 @@ void parseEquipmentFile(const char *filename, Inventory *inventory) {
     fclose(file);
 }
 
-// Function to parse the CLI arguments
+// Functie om interactief de inventaris te beheren
+// Functie om interactief de inventaris te beheren
+void manageInventory(Inventory *inventory) {
+    char choice[10];
+    Equipment *current = inventory->items;
+
+    while (1) {
+        printf("next, previous, use, or exit: ");
+        int success = scanf("%s", choice);
+        if (success != 1) {
+            printf("Fout bij het lezen van de invoer.\n");
+            // Voer hier eventueel extra foutafhandeling uit
+            continue; // Ga door naar de volgende iteratie van de lus
+        }
+
+        if (strcmp(choice, "next") == 0) {
+            if (current < &inventory->items[inventory->itemCount - 1]) {
+                current++;
+            } else {
+                printf("Al bij het laatste item.\n");
+            }
+        } else if (strcmp(choice, "previous") == 0) {
+            if (current > inventory->items) {
+                current--;
+            } else {
+                printf("Al bij het eerste item.\n");
+            }
+        } else if (strcmp(choice, "use") == 0) {
+            useItem(current);
+        } else if (strcmp(choice, "exit") == 0) {
+            printf("Beëindig inventarisbeheer.\n");
+            break;
+        } else {
+            printf("Ongeldige keuze. Probeer opnieuw.\n");
+        }
+    }
+}
+
+// Functie om de CLI-argumenten te parseren
 void parseCLIArguments(int argc, char *argv[], Inventory *inventory) {
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-w") == 0 && i + 1 < argc) {
@@ -141,7 +180,7 @@ void parseCLIArguments(int argc, char *argv[], Inventory *inventory) {
     }
 }
 
-// Function to print the inventory
+// Functie om de inventaris af te drukken
 void printInventory(const Inventory *inventory) {
     printf("Inventory:\n");
     for (int i = 0; i < inventory->itemCount; i++) {
@@ -160,61 +199,28 @@ void printInventory(const Inventory *inventory) {
     printf("Camp File: %s\n", inventory->campFile);
 }
 
-  // Function to interactively manage the inventory
-  void manageInventory(Inventory *inventory) {
-      char choice[10];
-      Equipment *current = inventory->items;
+int main(int argc, char *argv[]) {
+    Inventory inventory = {0};
 
-      while (1) {
-          printf("next, previous, use, or exit: ");
-          scanf("%s", choice);
+    // Parse CLI arguments
+    parseCLIArguments(argc, argv, &inventory);
 
-          if (strcmp(choice, "next") == 0) {
-              if (current < &inventory->items[inventory->itemCount - 1]) {
-                  current++;
-              } else {
-                  printf("Already at the last item.\n");
-              }
-          } else if (strcmp(choice, "previous") == 0) {
-              if (current > inventory->items) {
-                  current--;
-              } else {
-                  printf("Already at the first item.\n");
-              }
-          } else if (strcmp(choice, "use") == 0) {
-              printf("Using item: %s\n", current->name);
-              // Implement item usage logic here
-          } else if (strcmp(choice, "exit") == 0) {
-              printf("Exiting inventory management.\n");
-              break;
-          } else {
-              printf("Invalid choice. Please try again.\n");
-          }
-      }
-  }
+    // Print the inventory
+    printInventory(&inventory);
 
-  int main(int argc, char *argv[]) {
-      Inventory inventory = {0};
+    // Manage the inventory interactively
+    manageInventory(&inventory);
 
-      // Parse CLI arguments
-      parseCLIArguments(argc, argv, &inventory);
+    // Free allocated memory
+    for (int i = 0; i < inventory.itemCount; i++) {
+        free(inventory.items[i].name);
+        free(inventory.items[i].index);
+        free(inventory.items[i].url);
+        free(inventory.items[i].description);
+        free(inventory.items[i].cost);
+    }
+    free(inventory.items);
+    free(inventory.campFile);
 
-      // Print the inventory
-      printInventory(&inventory);
-
-      // Manage the inventory interactively
-      manageInventory(&inventory);
-
-      // Free allocated memory
-      for (int i = 0; i < inventory.itemCount; i++) {
-          free(inventory.items[i].name);
-          free(inventory.items[i].index);
-          free(inventory.items[i].url);
-          free(inventory.items[i].description);
-          free(inventory.items[i].cost);
-      }
-      free(inventory.items);
-      free(inventory.campFile);
-
-      return 0;
-  }
+    return 0;
+}
