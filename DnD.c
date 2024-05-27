@@ -258,5 +258,6 @@ int main(int argc, char *argv[]) {
     free(inventory.items);
     free(inventory.campFile);
 
+
     return 0;
 }
