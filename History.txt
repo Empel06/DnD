@@ -1,0 +1,37 @@
+Actie: Gebruik
+Item: Holy Symbols
+
+Actie: Gebruik
+Item: Arrow
+
+Actie: Gebruik
+Item: Holy Symbols
+
+Actie: Gebruik
+Item: Armor
+
+Actie: Gebruik
+Item: Two-Handed
+
+Actie: Gebruik
+Item: Holy Symbols
+
+Actie: Gebruik
+Item: Arrow
+
+Actie: Gebruik
+Item: Arrow
+
+Actie: Gebruik
+Item: Holy Symbols
+
+Actie: Gebruik
+Item: ArrowActie: Gebruik
+Item: Holy Symbols
+
+Actie: Gebruik
+Item: Arrow
+
+Actie: Gebruik
+Item: Holy Symbols
+
